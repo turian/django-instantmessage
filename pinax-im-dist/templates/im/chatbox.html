@@ -1,0 +1,29 @@
+{% if user.is_authenticated %}
+  <link rel="stylesheet" href="{{ STATIC_URL }}css/jquery.okNotify.css" type="text/css" media="screen" />
+  <link rel="stylesheet" href="{{ STATIC_URL }}css/im.chatbox.css" type="text/css" media="screen" />
+
+  {% with request.user.friends.all as friends %}
+    <div class="im_box">
+      <a class="im_header" title="feel like chatting?" href="#">
+        <strong>Chat</strong>
+        [<span id="im_visible_count" title="number of users">0</span> / 
+        <span id="im_all_count" title="total number of users online">0</span>]
+      </a>
+      <ul class="im_userlist"></ul>
+      <div class="im_buttons">
+        <a href="#" id="im_filter">
+          <strong title="display all users / friends only ">+</strong>
+        </a>
+        <img src="{{ STATIC_URL }}images/ajax.gif" class="im_updating" alt="updating..." />
+      </div>
+    </div>
+  {% endwith %}
+
+  <script type="text/javascript">
+    // Exporting some global variables:
+    var IM_SYNC_URL = "{% url im_sync_chatbox %}",
+        IM_SYNC_DELAY = {{ IM_POLL_DELAY }} * 1000;
+  </script>
+  <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.okNotify.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}js/im.chatbox.js"></script>
+{% endif %}

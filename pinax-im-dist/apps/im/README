@@ -1,0 +1,51 @@
+instant messenger
+=================
+
+This django app focuses on implementing a very basic "real-time" chat for site 
+users. Unlike django-jchat and django-jqchat, it creates one-to-one chatrooms 
+and doesn't rely that hard on the database, using rabbitmq as a backend for 
+storing messages. Almost all HTML content (except for error notifications) is 
+rendered on server with the following set of templates:
+* im/user.html - userlist item for floating chatbox
+* im/message.html - chat message
+* im/request.html - chat request (in one of three states: newly created, accepted 
+  or declined)
+
+Chat logs are flushed to the database every IM_CHATLOG_DELAY minutes, using
+celery.PeriodicTask, which recieves all the messages from the chatlog queue,
+wraps them in im.models.Message and then saves. 
+
+There are two types of messages in the system - "text" messages, and "event" 
+messages. The latter is just like the "text" message, except that instead of 
+the actual text, it stores an event code, which corresponds to the message in 
+IM_EVENT_CHOICES. You can change the text behind event codes, through modifying
+IM_EVENT_CHOICES variable in settings.py. The default value only covers online,
+offline events.
+
+The app has very basic emoticons support, which is defined by two variables
+IM_EMOTICONS_URL, which sets a relative path (relative to STATIC_URL actually) 
+to the directory holding emoticon images; and IM_EMOTICONS_THEME, which is 
+a mapping of filenames in the emoticons dir to the text emoticons. The latter
+is best explained by example:
+IM_EMOTICONS_THEME = {
+    "base.gif": ":\)",
+     ^           ^
+     |           |
+    filename    regexp
+}
+
+Installation:
+-------------
+Install useractivity.
+Add "im" to INSTALLED_APPS
+Add "im.context_processors.im_settings" to TEMPLATE_CONTEXT_PROCESSORS
+Add {% include "im/chatbox.html" %} to your base template.
+Add IM_CHATLOG_DELAY to settings.py
+Include "im.urls" in the project's urls.py: (r"^im/", include("im.urls"))
+Sync the database.
+Done!
+
+Note:
+-----
+Don't forget to start celerybeat along with django server:
+manage.py celeryd -B

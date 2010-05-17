@@ -1,0 +1,33 @@
+.im_wrapper {
+    width: 100%;
+    height: 100%;
+    min-width: 400px;
+    min-heigh: 400px;
+}
+
+.im_chat {
+    overflow: hidden;
+    width: 100%;
+    height: 80%;
+}
+.im_wrapper textarea { 
+    margin: 0;
+    bottom: 0;
+    width: 99.4%; 
+    height: 18%;
+}
+
+.im_event { color: #CCCCCC; }
+.im_event,
+.im_message { 
+    word-wrap: break-word; 
+    padding: 0 3px;
+}
+.im_other { color: #0163B3; }
+.im_self { color: #D35900; }
+
+.im_updating { 
+    height: .9em;
+    margin-top: .15em;
+    float: right;
+}

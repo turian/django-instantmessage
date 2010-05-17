@@ -1,0 +1,25 @@
+django-instantmessage
+---------------------
+
+IM-like application for Pinax social networks (Django), that allow you
+to see which friends are online and chat them
+
+    http://metaoptimize.com/projects/django-instantmessage
+
+Please refer to the README files in
+    pinax-im-dist/apps/im/
+and
+    pinax-im-dist/apps/useractivity/
+
+Note that this code distribution is designed for Pinax social networks
+(http://pinaxproject.com/). It might be possible to take the two
+applications (pinax-im-dist/apps/im and pinax-im-dist/apps/useractivity),
+and separate them into separate distributions, for use with generic
+Django sites, not just Pinax ones. I am not experienced with Django
+packaging, and I encourage other users to experiment with using this
+code for non-Pinax Django site, and re-releasing it.
+
+This code was written by Sergei Lebedev
+(http://www.rentacoder.com/RentACoder/DotNet/SoftwareCoders/ShowBioInfo.aspx?lngAuthorId=7183794),
+is copyright (c) 2010, Joseph Turian, and is released under the MIT
+License.

@@ -1,0 +1,44 @@
+useractivity
+============
+
+This small app allows you to get a list of online users. This is accomplished, 
+by introducing useractivity.middleware.UserActivityMiddleware, which periodically
+captures user's ip address, and dumps it to the database along with the current 
+timestamp. The period is defined by ACTIVITY_UPDATE_DELAY option, which equals
+to the number of seconds before the next snapshot is taken.
+
+User activity data in the database is then processed by celery.PeriodicTask,
+which populates the rabbitmq exchange, allowing to get a list of user data 
+dicts without hitting the database. User data dicts are filled from User models, 
+accoring to the list of attributes, which by default equals to ["username"]. You 
+can override this behaviour by setting ACTIVITIY_USER_DATA option.
+
+Summary:
+-------
+
+1. Settings
+   - ACTIVITIY_USER_DATA a list of User attributes to fetch
+   - ACTIVITY_UPDATE_DELAY number of seconds, before User data is updated
+2. Middleware Classes
+   - useractivity.middleware.UserActivityMiddleware
+3. Context processors
+   - useractivity.context_processors.online_users
+
+Requirements:
+-------------
+* celery
+* carrot
+
+Installation:
+-------------
+Install celery.
+Add "useractivity" and "celery" to INSTALLED_APPS
+Add "useractivity.middleware.UserActivityMiddleware" to MIDDLEWARE_CLASSES
+Add ACTIVITY_UPDATE_DELAY option to settings.py
+Sync the database.
+Done!
+
+Note:
+-----
+Don't forget to start celerybeat along with django server:
+manage.py celeryd -B

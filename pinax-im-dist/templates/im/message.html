@@ -1,0 +1,26 @@
+{% load im_filters %}
+
+{% spaceless %}
+{% comment %}
+Chat message template.
+Availible variables:
+* timestamp: time, the message was sent
+* author: author's username
+* text: message text
+* event: message event type (online, offline by default)
+* hash: unique message id
+{% endcomment %}
+  {% if event|stringformat:"i" %}
+    <div id="message_{{ hash }}" class="im_event">
+      [{{ timestamp|time:"H:i" }}] {{ author }} {{ text }}
+    </div>
+  {% else %}
+    <div id="message_{{ hash }}" class="im_message">
+      <span class="im_{% ifequal request.user.username author %}self{% else %}other{% endifequal %}">
+        [{{ timestamp|time:"H:i" }}]
+        <strong>{{ author }}</strong>
+      </span>:
+      {{ text|urlize|linebreaksbr|emoticons }}
+    </div>
+  {% endif %}
+{% endspaceless %}
