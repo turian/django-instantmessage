@@ -2,11 +2,19 @@
  * Arguments:
  * - content: reference to chat content div
  * - input  : reference to text input element
+ * 
+ * Events:
+ * - im.beforesync
+ * - im.aftersync
+ * - im.message.recieved
+ * - im.message.sent
  */
 function ImChat(content, input) {
-    var updating = $(".im_updating"),
-        timer = null;
+    var timer = null;
 
+    // Default event types, if you want to add more you need to
+    // explicitly change theese, however it's recommeneded, that
+    // 0 and 1 is left reserved for online / offline.
     var EVENT_ONLINE = 0,
         EVENT_OFFLINE = 1;
 
@@ -30,36 +38,46 @@ function ImChat(content, input) {
                 };
             });
 
-        // Setting up updating image display on each request to the server.
-        $.ajaxSetup({
-             beforeSend: function() { updating.show(); },
-             complete: function() { updating.hide(); },
-             dataType: "json"
-         });
+        // Auto offline message will be sent, if the user leaves the chat page.
+        $(window).bind("unload",
+            function(event) { 
+                send(null, EVENT_OFFLINE, false);
+            }).bind("im.message.sent", sync);
 
         // Sending presence.
         send(null, EVENT_ONLINE);
 
-        // Auto offline message will be sent, if the user leaves the chat page.
-        $(window).bind("beforeunload",
-                       function(event) { send(null, EVENT_OFFLINE); });
+        // Setting up AJAX defaults.
+        $.ajaxSetup({dataType: "json"});
     };
 
     /* Function queries the server for new messages and appends 
      * them to the content div.
      */
     function sync() {
+        $(window).trigger("im.beforesync");
+
         // If the function was called from send(), we need to 
         // explicitly clear the timer.
         timer && clearTimeout(timer);
             
-        $.get(IM_SYNC_URL,
-              function(messages) {
-                  for (idx in messages) {
-                      content.append(messages[idx]);
-                      content.animate({scrollTop: content.attr("scrollHeight")}, 500);
-                  };
-              });
+        $.ajax({
+            method: "GET",
+            url: IM_SYNC_URL,
+            mode: "sync",
+            success: function(messages) {
+                for (var idx in messages) {
+                    var message = messages[idx];
+                    $(window).trigger("im.message.recieved", message);
+
+                    content.append(message).animate({
+                        scrollTop: content.attr("scrollHeight")
+                    }, 500);
+                };
+
+                $(window).trigger("im.aftersync", messages.length);
+            }
+        });
 
         // Reinitilizing sync timer.
         timer = setTimeout(arguments.callee, IM_SYNC_DELAY);
@@ -68,21 +86,22 @@ function ImChat(content, input) {
     /* Function extracts input value and sends it to the server, 
      * syncronizing the content on success.
      */
-    function send(text, event, callback) {
+    function send(text, event, async) {
         text = text || input.val().trim();
         event = (event === undefined) ? null : event;
+        async = (async === undefined) ? true : async;
         // Empty messages aren't sent to the server.
         if (text || event in [EVENT_ONLINE, EVENT_OFFLINE]) {
-            $.post(IM_SEND_URL, 
-                   {text: text,
-                    event: event},
-                   function() { 
-                       // Executing the callback if it's present (can come in 
-                       // handy for offline notification) and syncronizing with 
-                       // the server.
-                       callback && callback();
-                       sync();
-                   });
+            $.ajax({
+                type: "POST",
+                mode: "sync",
+                async: async,
+                url: IM_SEND_URL, 
+                data: {text: text, event: event},
+                success: function(hash) { 
+                    async && $(window).trigger("im.message.sent", hash); 
+                }
+            });
             
             // Emptying the input.
             text && input.val(""); 
@@ -98,16 +117,3 @@ $(document).ready(
         new ImChat($(".im_chat"), $(".im_msgbox"));
     });
 
-/* Function makes a pause for a given amount of time.
- * Source: http://docs.jquery.com/Cookbook/wait
- */
-jQuery.fn.wait = function(time, type) {
-        time = time || 1000;
-        type = type || "fx";
-        return this.queue(type, function() {
-            var self = this;
-            setTimeout(function() {
-                $(self).dequeue();
-            }, time);
-        });
-    };

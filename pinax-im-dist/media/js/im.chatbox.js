@@ -24,6 +24,8 @@ function ChatBox(element) {
         userlist = $(".im_userlist", element).data("filter", true),
         updating = $(".im_updating", element),
         filter = $("#im_filter", element),
+        visible_counter = $("#im_visible_count", element),
+        all_counter = $("#im_all_count", element),
         timer = null;
 
     var REQUEST_READY = 0,
@@ -35,44 +37,48 @@ function ChatBox(element) {
      */
     function init() {
         header.click(
-            function(event) {
-                event.preventDefault();
-                // If there's no users online - noone to chat with,
-                // so preventing the user from opening the chatbox.
+            function(event) { 
                 if (userlist.children().length) {
                     header.nextAll("*").toggle();
-                };
+                }
             });
 
         filter.click(
             function(event) {
+                // Preventing the browser from following the link.
                 event.preventDefault();
+                
+                // Updating userlist filter state.
                 userlist.data("filter", !userlist.data("filter"));
+
+                // Reinitilizing the userlist items.
                 userlist.trigger("im.userlist.changed");
 
+                // Not the most usable way of informing the user of the
+                // filter state, but better than nothing anyway :)
                 (userlist.data("filter")) 
                     ? filter.find("strong").text("+")
                     : filter.find("strong").text("-");
             });
 
         userlist.bind("im.userlist.changed",
-            function(event) {
-                var users = userlist.children("li.im_user, li.im_friend");
+            function() {
+                var users = userlist.children("li");
                 // If we have "display_all" filter disabled (thus only friends
                 // should be displayed in the list), hiding added non-friend users
                 // and updating visible users counter with a number of friends online
                 if (!userlist.data("filter")) {
-                    users.filter("li.im_user").hide();
-                    $("#im_visible_count").text(users.filter("li.im_friend").length);
+                    users.filter(".im_user").hide();
+                    visible_counter.text(users.filter(".im_friend").length);
                 } else {
-                    users.filter("li.im_user").show();
+                    users.filter(".im_user").show();
                     // Updating visible users counter with a number of total users 
                     // online, since no filtering involved.
-                    $("#im_visible_count").text(users.length);
+                    visible_counter.text(users.length);
                 }
                 
                 // Updating total online users counter.
-                $("#im_all_count").text(users.length);
+                all_counter.text(users.length);
 
                 // Binding click event to user items.
                 users.children("a").click(
@@ -81,12 +87,12 @@ function ChatBox(element) {
                         $.post(this.href, "json");
                     });
 
-                // If we have zero online an users and chat blocks 
-                // are expaned, hiding them.
+                // If we have zero online an users and chat blocks are expaned, 
+                // hiding them.
                 if (!users.length && userlist.is(":visible")) {
-                    header.click();
+                    userlist.trigger("im.userlist.empty");
                 };
-            });
+            }).bind("im.userlist.empty", function() { header.nextAll("*").hide(); });
 
         // Setting up updating image display on each request to the server.
         $.ajaxSetup({

@@ -9,8 +9,9 @@ BROKER_VHOST = "/"
 BROKER_USER = "guest"
 BROKER_PASSWORD = "guest"
 
+ACTIVITY_SERIALIZER = "json"
+ACTIVITY_USER_FIELDS = ("username", )
 ACTIVITY_UPDATE_DELAY = 60 # seconds
-ACTIVITY_USER_DATA = ("username", )
 
 IM_EMOTICONS_URL = "/images/emoticons/"
 IM_CHATLOG_DELAY = 1 # seconds

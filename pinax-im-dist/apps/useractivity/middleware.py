@@ -30,12 +30,11 @@ def getip(request):
             return match.group(0)
     return ""
 
-
 class UserActivityMiddleware(object):
     """
     Middleware class, updating user activity information.
 
-    To lower database load, update only occurs when the
+    To lower the database load, update only occurs when the
     difference between last update time, and current time
     exceeds settings.IM_UPDATE_DELAY.
     """
@@ -44,11 +43,14 @@ class UserActivityMiddleware(object):
             return
 
         now, ip = datetime.now(), getip(request)
-        activity, created = UserActivity.objects.get_or_create(ip=ip, user=request.user)
+        try:
+            activity = UserActivity.objects.get(user=request.user)
+        except UserActivity.DoesNotExist:
+            activity = UserActivity(user=request.user)
 
-        if now - activity.date >= UPDATE_DELAY:
-            # If the offset exceeds maximum delay, updating
-            # the timestamp and the ip.
+        # If the activity was just created or timestamp offset exceeds
+        # maximum delay, updating timestamp and ip address.
+        if not activity.pk or now - activity.date >= UPDATE_DELAY:
             activity.date = now
             activity.ip = ip
-        activity.save()
+            activity.save()

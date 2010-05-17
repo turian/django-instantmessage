@@ -34,7 +34,7 @@ def sync(request):
 
     online = list()
     friends = map(unicode, friend_set_for(request.user))
-    for user in sorted(user["username"] for user in get_online_users()):
+    for user in sorted(unicode(user.object) for user in get_online_users()):
         # Preventing request user from appearing in the chatbox.
         if user == unicode(request.user):
             continue

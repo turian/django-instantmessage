@@ -43,6 +43,8 @@ def send(chat_id, author, text=None, event=None):
             text = EVENT_MESSAGES[event]
         except IndexError:
             return
+    elif not text:
+        return
 
     with DjangoBrokerConnection() as connection:
         publisher = Publisher(connection=connection,
@@ -97,6 +99,7 @@ def _request(target, user, state, **extraparams):
                 "state": state,
                 "timestamp": now()}
         data.update(extraparams)
+
         publisher.send(data)
 
         return hash

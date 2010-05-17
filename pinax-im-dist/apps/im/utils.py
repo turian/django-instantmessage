@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from django.core.serializers import serialize
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.db.models.query import QuerySet

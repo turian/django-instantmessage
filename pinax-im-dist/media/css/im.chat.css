@@ -25,9 +25,3 @@
 }
 .im_other { color: #0163B3; }
 .im_self { color: #D35900; }
-
-.im_updating { 
-    height: .9em;
-    margin-top: .15em;
-    float: right;
-}
