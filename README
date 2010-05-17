@@ -17,12 +17,13 @@ refer to the README files:
 
 Note that this code is designed for Pinax social networks
 (http://pinaxproject.com/). This code was built against Pinax 0.7.1,
-and tested on Pinax 0.7.1 and 0.7.2. It might be possible to take the two
-applications (pinax-im-dist/apps/im and pinax-im-dist/apps/useractivity),
-and separate them into separate distributions, for use with generic
-Django sites, not just Pinax ones. I am not experienced with Django
-packaging, and I encourage other users to experiment with using this
-code for non-Pinax Django site, and re-releasing it.
+and tested on "socialproject" in Pinax 0.7.1 and 0.7.2. It might be
+possible to take the two applications (pinax-im-dist/apps/im and
+pinax-im-dist/apps/useractivity), and separate them into separate
+distributions, for use with generic Django sites, not just Pinax ones. I
+am not experienced with Django packaging, and I encourage other users
+to experiment with using this code for non-Pinax Django site, and
+re-releasing it.
 
 This code was written by Sergei Lebedev
 (http://www.rentacoder.com/RentACoder/DotNet/SoftwareCoders/ShowBioInfo.aspx?lngAuthorId=7183794),
