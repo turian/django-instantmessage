@@ -121,14 +121,16 @@ def sync_chatbox(request, target):
         request.session["im:chat_requests:sync"] = now
     elif target == "online_users":
         friends = friend_set_for(request.user)
-        others = get_online_users() - friends
-        if request.user in others:
-            others.remove(request.user)
+        online_users = get_online_users()
+        if request.user in online_users:
+            online_users.remove(request.user)
+        online_friends = online_users & friends
+        online_others = online_users - friends
 
         data = render_to(request,
                          "im/userlist.html",
-                         {"friends": friends,
-                          "others": others})
+                         {"friends": online_friends,
+                          "others": online_others})
 
     return json_response(data)
 

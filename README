@@ -30,6 +30,11 @@ is copyright (c) 2010, Joseph Turian, and is released under the MIT
 License.
 
 ISSUES:
+    * The Chat list should stay at the bottom of the screen, even if
+    you scroll down on the page. However, if you look at a page that
+    is taller than the one screen height, and you scroll down, the chat
+    box will move up with the screen.
+
     * There's one issue with the ui code currently: user groups get
     collapsed after the userlist is updated. This is the result of having
     all templates rendered on server (which is kind of important in my
