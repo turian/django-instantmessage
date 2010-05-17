@@ -1,24 +1,42 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" 
-          "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang={{ LANGUAGE_CODE }}>
   <head>
+    <meta charset="utf-8" /> 
     <title>Chat with {{ chat.users.all|first }}</title>
-    <link rel="stylesheet" href="{{ STATIC_URL }}pinax/css/base.css" />
     <link rel="stylesheet" href="{{ STATIC_URL }}css/im.chat.css" />
   </head>
   <body>
-    <div class="im_wrapper">
-      <div class="im_chat"></div> 
-      <textarea class="im_msgbox"></textarea>
-    </div> 
-
+    <nav>
+      <strong>{{ request.user }}</strong> |
+      <a href="#" onClick="javascript: window.close()">Leave</a>
+    </nav>
+    <div id="content">
+      <div id="inbox">
+        {% for message in chat.messages.latest %}
+          {% include "im/message.html" %}
+    	  {% endfor %}
+      </div>
+      <div id="input">
+        <form action="{% url im_send_message chat.id %}" id="messageform" method="POST">
+          <table>
+            <tr>
+              <td><input type="text" name="text" id="message" /></td>
+              <td>
+                <input type="submit" value="Post"/>
+		            <input type="hidden" name="next" value="{{ request.path }}"/>
+              </td>
+            </tr>
+          </table>
+        </form>
+      </div>
+    </div>
     <script type="text/javascript">
+      // Exporting some global variables:
       var IM_SYNC_URL = "{% url im_sync_chat chat.id %}",
           IM_SEND_URL = "{% url im_send_message chat.id %}",
-          IM_SYNC_DELAY = {{ IM_POLL_DELAY }} * 1000;
+          IM_SYNC_DELAY = {{ IM_CHAT_POLL_EVERY.seconds }} * 1000;
     </script>
     <script type="text/javascript" src="{{ STATIC_URL }}pinax/js/jquery-1.3.2.min.js"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}pinax/js/jquery.ajaxQueue.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/im.chat.js"></script>
   </body>
 </html>

@@ -1,0 +1,27 @@
+<ul id="userlist">
+  <li class="header">
+    <div class="title expanded">&#9662; Hide friends</div>
+    <div class="title collapsed">&#9656; Show friends</div>
+    <ul id="friends" title="toggle your friends display">
+      {% for user in friends %}
+        <li class="user">
+          <a href="{% url im_request_chat user.id %}" 
+             title="invite {{ user }}">{{ user }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  </li>
+
+  <li class="header">
+    <div class="title expanded">&#9662; Hide others</div>
+    <div class="title collapsed">&#9656; Show others</div>
+    <ul id="others" title="toggle other online users display">
+      {% for user in others %}
+        <li class="user">
+          <a href="{% url im_request_chat user.id %}" 
+             title="invite {{ user }}">{{ user }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  </li>
+</ul>

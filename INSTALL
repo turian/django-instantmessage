@@ -1,0 +1,39 @@
+* Install pinax as per its instructions, then entire your site (called
+"mysite" in Pinax's INSTALL document).
+
+* Edit mysite/settings.py file in your Pinax site:
+    # Add this to the end of MIDDLEWARE_CLASSES
+    "useractivity.middleware.UserActivityMiddleware",
+
+    # Add this to the end of TEMPLATE_CONTEXT_PROCESSORS
+    "im.context_processors.im_settings",
+
+    # Add these to your INSTALLED_APPS, perhaps as the last external apps
+    "useractivity",
+    "im",
+
+* Apply the following patch to mysite/templates/site_base.html
+--- /tmp/Pinax-0.7.2-bundle/mysite/templates/site_base.html 2010-02-18 19:54:20.000000000 -0500
++++ im_project/templates/site_base.html 2010-03-18 14:12:50.000000000 -0400
+@@ -74,5 +74,6 @@
+ {% block extra_body_base %}
+     {% urchin %}
+     <script type="text/javascript" src="{{ STATIC_URL }}pinax/js/topics.js"></script>
++    {% include "im/chatbox.html" %}
+     {% block extra_body %}{% endblock %}
+ {% endblock %}
+
+* Apply the following patch to mysite/urls.py
+--- /tmp/Pinax-0.7.2-bundle/mysite/urls.py      2010-02-18 19:54:20.000000000 -0500
++++ im_project/urls.py  2010-05-17 18:29:36.000000000 -0400
+@@ -63,7 +63,8 @@
+     (r'^swaps/', include('swaps.urls')),
+     (r'^flag/', include('flag.urls')),
+     (r'^locations/', include('locations.urls')),
+-    
++    (r'^im/', include('im.urls')),
++
+     (r'^feeds/tweets/(.*)/$', 'django.contrib.syndication.views.feed', tweets_feed_dict),
+     (r'^feeds/posts/(.*)/$', 'django.contrib.syndication.views.feed', blogs_feed_dict),
+     (r'^feeds/bookmarks/(.*)/?$', 'django.contrib.syndication.views.feed', bookmarks_feed_dict),
+

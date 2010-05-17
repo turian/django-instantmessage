@@ -1,197 +1,184 @@
-/* Function opens a new chat window with a given url
- * as window.location.
+/* 
+ * Know issues: userlist state is reset, after the update. I.e. if you have friends / users
+ * lists expaneded, they will be collapsed. This is the result of the server-side rendering.
  */
-function chat(url, user) {
-    if (!window.open(url, 
-                     url.replace(/\//g, "_"), 
-                     "width=500,height=300")) {
+
+$(document).ready(function() {
+    $("#chatbox #titlebar").click(function() { 
+        var userlist = $(this).next("#userlist");
+        userlist && userlist.toggle(); 
+    });
+    $("#chatbox .header").live("click", function() {
+        var header = $(this);
+        header.find(".expanded, .collapsed").toggle();
+        header.children("ul").toggle();
+    });
+
+    $("#chatbox .user").live("click", chatbox.requestChat);
+    $(".ui-notification .decline, .ui-notification-close").live("click", chatbox.declineChat);
+    $(".ui-notification .accept").live("click", chatbox.acceptChat);
+
+    $.ajaxSetup({
+        dataType: "json",
+
+        beforeSend: function() { $("#chatbox .updating").show(); },
+        complete: function() { $("#chatbox .updating").hide(); }
+    });
+
+    chatbox.sync();
+
+    $.noticeAdd.templates["im"] = "<div class='ui-notification'><div class='ow'><div class='iw'><div class='ui-notification-titlebar'><span class='ui-notification-title'></span><span class='ui-notification-close'>x</span></div><div class='ui-notification-content'></div></div></div></div>";
+});
+
+var chatbox = {
+    timer: {},
+    cache: {},
+    visible: {},
+    
+    /* 
+     * Shortcut function, initializes server polling for both users and
+     * chat requests.
+     * 
+     * Arguments: none
+     */
+    sync: function() {
+        chatbox.syncUsers();
+        chatbox.syncRequests();
+    },
+
+    /* 
+     * Function polls the server for a list of online users. The update only
+     * occurs, if recieved data differs from the one, already displayed. This 
+     * is determined, by comparing hashes of the displayed and recieved 
+     * userlists. 
+     * 
+     * Arguments: none
+     */
+    syncUsers: function() {
+        clearTimeout(chatbox.timer.users);
+        
+        $.get(IM_SYNC_URLS.users,
+              function(response) { 
+                  if (chatbox.cache.users !== response.hash) {
+                      chatbox.cache.users = response.hash;
+                      $("#userlist").replaceWith(response.payload);
+
+                      // Updating user counter accordingly.
+                      $("#counter").text($("#userlist .header li").length);
+                  }
+              });
+
+        chatbox.timer.users = setTimeout(arguments.callee, 
+                                         IM_SYNC_DELAY.users);
+    },
+
+    /* 
+     * Function polls the server for new chat requests. Each chat request
+     * is then displayed in a notification popup, with type value, corresponding
+     * to it's state.
+     * 
+     * Arguments: none
+     */
+    syncRequests: function() {
+        clearTimeout(chatbox.timer.requests);
+
+        $.get(IM_SYNC_URLS.requests,
+               function(response) {
+                   for (var idx in response.payload) {
+                       var request = response.payload[idx],
+                           // Each recieved chat request will have an id
+                           // of form <state>_<id>, thus we can get request
+                           // state from the id attribute's value.
+                           state = $(request).attr("id").split("_")[0];
+                       chatbox.notify(request, state);
+                   };
+               });
+
+        chatbox.timer.requests = setTimeout(arguments.callee, 
+                                            IM_SYNC_DELAY.requests);
+    },
+
+    /* 
+     * Shortcut function for $.notifyAdd, creates a popup notification, 
+     * using the passed text string and type; the latter is later used 
+     * for the class attribute of the created notification.
+     * 
+     * Arguments:
+     * - text: notification message
+     * - type: notification type, defaults to "request"
+     */
+    notify: function(text, type) {
+        type = type || "request";
+        $.noticeAdd({
+            type: type,
+            stay: ["request", "accepted"].indexOf(type) !== -1,
+            duration: 5000,
+            title: "chat " + type,
+            position: "bottom-left",
+            text: text,
+            template: "im"
+        });
+    },
+
+    /* 
+     * Function sends a chat request, using target's href attribute for
+     * the url. If successfull, notification popup, containing response 
+     * data is displayed.
+     * 
+     * Arguments:
+     * - event: reference to the fired event object
+     */
+    requestChat: function(event) { 
+        $.post(event.target.href, function(response) {
+            response.payload && chatbox.notify(response.payload, "info");
+        });
+        return false;
+    },
+
+    /* 
+     * Function sends a reply to the incoming chat request; reply url is 
+     * extracted from the target's href attribute. After the reply is 
+     * delivered the corresponding notification popup is closed. 
+     * 
+     * Arguments:
+     * - target: reference to the link, with the reply url
+     * - accept: if true, then new chat window will be opened, as soon, as 
+     *           the reply is delivered (with reply data used as window url)
+     */
+    sendReply: function(target, accept) {
+        $.post(target.href, function(response) {
+            accept && chatbox.open_chat(response.payload);
+            $(target).closest(".iw").find(".ui-notification-close").click();
+        });                           
+        return false;
+    },
+
+    /* 
+     * Shortcut functions for chatbox.sendReply. 
+     * 
+     * Arguments:
+     * - event: reference to the fired event object (click-event object is 
+     *          being passed, actually)
+     */
+    declineChat: function(event) { return chatbox.sendReply(event.target); },
+    acceptChat: function(event) { return chatbox.sendReply(event.target, true); },
+
+    /* 
+     * Function pops up a new window with a given chat url, and displays the 
+     * notification, in case the browser blocks the pop up.
+     * 
+     * Arguments:
+     * - url: created chat url address
+     */
+    open_chat: function(url) { 
+        if (!window.open(url, 
+                         url.replace(/\//g, "_"), 
+                         "width=500,height=300")) {
         // Firefox will most likely block the popup, so open a notification 
         // with chat url.
-        $.noticeAdd({
-            duration: 5000,
-            type: "im_declined",
-            title: "success",
-            template: "im",
-            text: "Look's like your browser has just blocked the chat popup. " +
-                  "You can still join the chatroom by following <a href='javascript:chat(\"" + 
-                  url + "\")>this</a> link.",
-            position: "bottom-left"});
-    };
-}
-
-function ChatBox(element) {
-    var header = $(".im_header", element), 
-        userlist = $(".im_userlist", element).data("filter", true),
-        updating = $(".im_updating", element),
-        filter = $("#im_filter", element),
-        visible_counter = $("#im_visible_count", element),
-        all_counter = $("#im_all_count", element),
-        timer = null;
-
-    var REQUEST_READY = 0,
-        REQUEST_ACCEPTED = 1,
-        REQUEST_DECLINED = 2;
-
-    /* Function initializes chatbox instance, by attaching click and 
-     * update handlers to header, filter and userlist blocks.
-     */
-    function init() {
-        header.click(
-            function(event) { 
-                if (userlist.children().length) {
-                    header.nextAll("*").toggle();
-                }
-            });
-
-        filter.click(
-            function(event) {
-                // Preventing the browser from following the link.
-                event.preventDefault();
-                
-                // Updating userlist filter state.
-                userlist.data("filter", !userlist.data("filter"));
-
-                // Reinitilizing the userlist items.
-                userlist.trigger("im.userlist.changed");
-
-                // Not the most usable way of informing the user of the
-                // filter state, but better than nothing anyway :)
-                (userlist.data("filter")) 
-                    ? filter.find("strong").text("+")
-                    : filter.find("strong").text("-");
-            });
-
-        userlist.bind("im.userlist.changed",
-            function() {
-                var users = userlist.children("li");
-                // If we have "display_all" filter disabled (thus only friends
-                // should be displayed in the list), hiding added non-friend users
-                // and updating visible users counter with a number of friends online
-                if (!userlist.data("filter")) {
-                    users.filter(".im_user").hide();
-                    visible_counter.text(users.filter(".im_friend").length);
-                } else {
-                    users.filter(".im_user").show();
-                    // Updating visible users counter with a number of total users 
-                    // online, since no filtering involved.
-                    visible_counter.text(users.length);
-                }
-                
-                // Updating total online users counter.
-                all_counter.text(users.length);
-
-                // Binding click event to user items.
-                users.children("a").click(
-                    function(event) {
-                        event.preventDefault();
-                        $.post(this.href, "json");
-                    });
-
-                // If we have zero online an users and chat blocks are expaned, 
-                // hiding them.
-                if (!users.length && userlist.is(":visible")) {
-                    userlist.trigger("im.userlist.empty");
-                };
-            }).bind("im.userlist.empty", function() { header.nextAll("*").hide(); });
-
-        // Setting up updating image display on each request to the server.
-        $.ajaxSetup({
-             beforeSend: function() { updating.show(); },
-             complete: function() { updating.hide(); },
-             error: function() {
-                 // Displaying the error notification.
-                 $.noticeAdd({
-                     duration: 5000,
-                     type: "im_declined", // It just happend we have the red box 
-                                          // already there for the declined message.
-                     title: "error",
-                     template: "im",
-                     text: "Oops, something went wrong...",
-                     position: "bottom-left"
-                 });
-             },
-             dataType: "json"
-         });
-
-        // Requesting initial data from the server.
-        sync();
-    };
-
-    /* Function requests user and online users data from the 
-     * server 
-     */
-    function sync() {
-        // If the function was called from request(), we need to explicitly
-        // clear the timer.
-        timer && clearTimeout(timer);
-
-        $.getJSON(IM_SYNC_URL, 
-                  function(data) {
-                      sync_users(data);
-                      sync_requests(data);
-                      userlist.trigger("im.userlist.changed"); // Redrawing the box.
-                  });
-
-        // Reinitilizing sync timer.
-        timer = setTimeout(arguments.callee, IM_SYNC_DELAY);
-    };
-
-    /* Function updates userlist with the data recieved from the 
-     * server 
-     */
-    function sync_users(data) { 
-        userlist
-            .empty()
-            .append(data.online.join("")); 
-    };
-
-    /* Function handles incoming request data, displating the 
-     * appropriate notification for requests with a different 
-     * state value.
-     */
-    function sync_requests(data) {
-        var types = ["request", "accepted", "declined"];
-
-        for (idx in data.requests) {
-            (function(request) {
-                 var notice = $.noticeAdd({
-                     duration: 5000,
-                     stay: !(request.state === REQUEST_DECLINED),
-                     title: "chat " + types[request.state],
-                     template: "im",
-                     text: request.content,
-                     type: "im_" + types[request.state],
-                     position: "bottom-left"
-                 });
-
-                 notice.find("a").click(
-                     function(event) {
-                         if (this.id.match(/accept|decline/)) {
-                             // After the user accept a chat request, chat window
-                             // is opened.
-                             var callback = (this.id.match(/accept/))
-                                 ? (function(data) { data && chat(data.url); }) 
-                                 : null;
-                             
-                             event.preventDefault();
-                             $.post(this.href, 
-                                    {hash: request.hash},
-                                    callback);
-                         }
-
-                         // Hiding notice block.
-                         $.noticeRemove(notice);
-                     });
-             })(data.requests[idx]);
-        };
-    };
-
-    // Initializing chatbox instance;
-    init();
-}
-
-$(document).ready(
-    function() {
-        $.noticeAdd.templates["im"] = "<div class='ui-notification'><div class='ow'><div class='iw'><div class='ui-notification-titlebar'><span class='ui-notification-title'></span><span class='ui-notification-close'>x</span></div><div class='ui-notification-content'></div></div></div></div>";
-        new ChatBox($(".im_box"));
-    });
+        chatbox.notify("Look's like your browser has just blocked the chat popup. " +
+                       "You can still join the chatroom by following <a href='javascript" +
+                       ":chatbox.open_chat(\"" + url + "\")>this</a> link.", "info");
+        }
+    }
+};

@@ -7,41 +7,51 @@ captures user's ip address, and dumps it to the database along with the current
 timestamp. The period is defined by ACTIVITY_UPDATE_DELAY (default 60s) option, 
 which equals to the number of seconds before the next snapshot is taken.
 
-User activity data in the database is then processed by celery.PeriodicTask,
-which populates the rabbitmq exchange, allowing to get a query set of users 
-without hitting the database. Users query set is serialized to ACTIVITY_SERIALIZER
-format (default: "json"), limiting model fields to ACTIVITY_USER_FIELDS 
-(default: ["username"]).
+Activity data is then made availible through useractivity.context_processors.users_online
+context processor, which populates ONLINE_USERS context variable with a list of 
+users, active within the last ACTIVITY_UPDATE_DELAY seconds. Obviously, we don't need
+to update this variable each time, as user activity itself is updated periodically.
+Thus, the value is cached with a timeout equal to the set up delay value.
 
-Summary:
--------
+Note: you can also get activity data with a utility function get_online_users().
 
-1. Settings
-   - ACTIVITY_SERIALIZER serializer, used to pack the users query set
-   - ACTIVITY_USER_FIELDS a list of user fields to serialize
-   - ACTIVITY_UPDATE_DELAY number of seconds, before user activity data will be updated
-2. Middleware Classes
-   - useractivity.middleware.UserActivityMiddleware
-3. Context processors
-   - useractivity.context_processors.online_users
-
-Requirements:
--------------
-* rabbitmq server
-* celery
-* carrot
 
 Installation:
 -------------
-Install celery.
-Add "useractivity" and "celery" to INSTALLED_APPS
- * celery has lots of setup options, checkout http://celeryproject.org/
-Add "useractivity.middleware.UserActivityMiddleware" to MIDDLEWARE_CLASSES
-Add ACTIVITY_UPDATE_DELAY option to settings.py
-Sync the database.
-Done!
 
-Note:
------
-Don't forget to start celerybeat along with django server:
-manage.py celeryd -B
+1. List this application with required apps in the INSTALLED_APPS portion of 
+   your settings file. Your settings file might look something like:
+   
+       INSTALLED_APPS = (
+           # ...
+           "useractivity",
+       )
+
+2. Install activity tracking middleware. Your settings file might look something
+   like:
+   
+       MIDDLEWARE_CLASSES = (
+           # ...
+           "useractivity.middleware.UserActivityMiddleware",
+       )
+
+3. Install online users context processor. Your settings file might look something
+   like:
+
+        TEMPLATE_CONTEXT_PROCESSORS = (
+            # ...
+            "useractivity.context_processors.online_users",
+        )
+
+Done! Now you have a list of online users (as User instances) in your template
+context, stored in the ONLINE_USERS variable, and availible through get_online_users
+function.
+
+
+Optional Settings:
+------------------
+
+There's no required settings in useractivity, but there's one optional setting,
+which modifies the interval between useractivity snapshots. This settings is
+USERACTIVITY_UPDATE_DELAY, change it, if the default value (60 seconds) doesn't 
+fit your needs.

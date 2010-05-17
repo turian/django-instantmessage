@@ -1,0 +1,28 @@
+{% ifequal chat_request.state 0 %}
+  {% ifequal chat_request.user_from request.user %}
+    <div id="request_{{ chat_request.id }}">
+      Chat request to user <strong>{{ chat_request.user_to }}</strong> was 
+      sent successfully.
+    </div>
+  {% else %}
+    <div id="request_{{ chat_request.id }}">
+      User <strong>{{ chat_request.user_from }}</strong> want's to chat with you.
+      You can either <a href="{% url im_accept_chat chat_request.id %}" 
+                        class="accept">Accept</a> or
+      <a href="{% url im_decline_chat chat_request.id %}" 
+         class="decline">Decline</a> his request.
+    </div>
+  {% endifequal %}
+{% else %}{% ifequal chat_request.state 1 %}
+  <div id="accepted_{{ chat_request.id }}">
+    User <strong>{{ chat_request.user_to }}</strong> accepted your chat request. 
+    You can enter the chatroom by following 
+    <a href="javascript:chatbox.open_chat('{% url im_show_chat chat_request.chat.id %}', 
+                                          '{{ user }}');">this</a> link.
+  </div>
+{% else %}
+  <div id="declined_{{ chat_request.id }}">
+    User <strong>{{ chat_request.user_to }}</strong> declined your chat request.
+  </div>
+{% endifequal %}
+{% endifequal %}

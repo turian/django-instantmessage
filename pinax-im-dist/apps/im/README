@@ -1,31 +1,20 @@
 instant messenger
 =================
 
-This django app focuses on implementing a very basic "real-time" chat for site 
-users. Unlike django-jchat and django-jqchat, it creates one-to-one chatrooms 
-and doesn't rely that hard on the database, using rabbitmq as a backend for 
-storing messages. Almost all HTML content (except for error notifications) is 
-rendered on server with the following set of templates:
-* im/user.html - userlist item for floating chatbox
-* im/message.html - chat message
-* im/request.html - chat request (in one of three states: newly created, accepted 
-  or declined)
-
-The app also provides an optional logging feature, if IM_CHATLOG is set to True, each
-conversation will be logged to the databse each IM_CHATLOG_DELAY minutus, using celery's
-periodic_task, which recieves all the messages from the chatlog queue, wraps them in 
-im.models.Message and then saves. This is the default behaviour, so if you don't need the logs, 
-add IM_CHATLOG = False to your settings module.
+This django app focuses on implementing a very basic user to user chat for a
+pinax based website. All html content is being rendered on server side, thus
+you can easily change the representation of pretty much anything, by simply 
+editing the corresponding template, which use familiar django syntax.
 
 There are two types of messages in the system - "text" messages, and "event" 
-messages. The latter is just like the "text" message, except that instead of 
-the actual text, it stores an event code, which corresponds to the message in 
+messages. The latter are just like the "text" ones, except that instead of 
+the actual text, they store an event code, which corresponds to the message in 
 IM_EVENT_CHOICES. You can change the text behind event codes, through modifying
 IM_EVENT_CHOICES variable in settings.py. The default value only covers online,
-offline events.
+offline events. 
 
 The app has very basic emoticons support, through the "|emoticons" filter in 
-im_filters.py. Emoticons are defined by three variables IM_EMOTICONS_ROOT and 
+emoticons_filter.py. Emoticons are defined by three variables IM_EMOTICONS_ROOT and 
 IM_EMOTICONS_URL, the first being responsible for an absolute path to the directory 
 holding emoticon themes, the second for a relative (relative to STATIC_URL actually) 
 one; and IM_EMOTICONS_THEME, which is a name of the directory holding emoticon 
@@ -62,23 +51,91 @@ and is only availible for free and non-commercial use.
 
 Installation:
 -------------
-Install useractivity.
-Add "im" to INSTALLED_APPS
-Add "im.context_processors.im_settings" to TEMPLATE_CONTEXT_PROCESSORS
-Add {% include "im/chatbox.html" %} to your base template.
-Add IM_CHATLOG_DELAY to settings.py
-Include "im.urls" in the project's urls.py: (r"^im/", include("im.urls"))
-Sync the database.
-Done!
 
-Note:
------
-Don't forget to start celerybeat along with django server:
-manage.py celeryd -B
+1. List this application with required apps in the INSTALLED_APPS portion of 
+   your settings file. Your settings file might look something like:
+   
+       INSTALLED_APPS = (
+           # ...
+           "useractivity", # requirement
+           "im",
+       )
+
+2. Install settings context processor. Your settings file might look something
+   like:
+
+        TEMPLATE_CONTEXT_PROCESSORS = (
+            # ...
+            "im.context_processors.im_settings",
+        )
+
+3. Include im urlconf to your global url patterns. You urls file might look
+   something like:
+        
+        urlpatterns = ("",
+            # ...
+            (r"^im/", include("im.urls")),
+        )
+
+4. Include chatbox template to your site base template, which is site_base.html
+   in Pinax:
+       {% include "im/site_base.html" %}
 
 
-Not implemented:
+And you're done, if everythin was done right, you'll see a chatbox appear on the
+bottom of each page.
+
+
+Optional Settings:
+------------------
+
+There's no required settings in im, however, there's a set of optional settings, 
+usefull for changing the default behaviour of the application. 
+
+IM_EVENT_CHOICES
+  a list of availible event messages in the system; it's strongly recommended to 
+  leave the two first events for offline and online, else you'll need to fix the 
+  javascript part to work with new events
+
+IM_HISTORY_SIZE
+  a number of messages rendered, when user rejoins the chat, defaults to 20
+
+IM_REQUESTS_EXPIRE_IN 
+  a timedelta object, represents chat request expiration interval, defaults to
+  5 minutes
+
+  Note: consider a situation, where user1 has sent a chat request to user2, but
+  user2 was unable to reply to it for some reason (f.ex. because of the browser 
+  crash); user1 will have a chance to re-send the request only after his previous
+  request expires.
+
+IM_CHAT_POLL_EVERY 
+  a timedelta object, defines an interval between polls for new chat messages, 
+  defaults to 5 seconds
+
+IM_CHATBOX_POLL_EVERY 
+  a timedelta object, defines an interval between polls for new chat requests, 
+  defaults to 10 seconds
+
+IM_USERLIST_POLL_EVERY 
+  a timedelta object, defines an interval between polls for online user list, if 
+  not set explicitly, the value is calculated from IM_CHAT_POLL_EVERY by multiplying 
+  it by 10.
+
+IM_EMOTICONS_ROOT 
+  an absolute path to the directory, holding emoticon themes
+
+IM_EMOTICONS_URL 
+  a relative url to the IM_EMOTICONS_ROOT directory (relative to STATIC_URL)
+
+IM_EMOTICONS_THEME 
+  a name of the directory, holding emoticon images
+
+  Note: this directory __must__ contain an __init__.py file with a variable "theme"
+  defined.
+
+
+Todo:
 ----------------
 * admin interface
 * avatar display (although that can be easily added through editing the templates)
-* history display

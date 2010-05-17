@@ -40,7 +40,7 @@ class UserActivity(models.Model):
                                       self.ip,
                                       self.date)
 
-    def save(self, **kw):
+    def save(self, **kwargs):
         if not self.date:
             self.date = datetime.now()
-        super(UserActivity, self).save(**kw)
+        super(UserActivity, self).save(**kwargs)

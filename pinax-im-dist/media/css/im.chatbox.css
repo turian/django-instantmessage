@@ -1,72 +1,50 @@
-.im_box {
-    width: 8em;
-    border: 1px solid;
-    z-index: 1;
-    right: 15px;
+#chatbox {
+    position: absolute;
     bottom: 0;
-    margin: 0;
-    padding: 0;
-    position: fixed;
-    text-align: center;
+    z-index: 99;
+    width: 12em;
+    right: 1em;
+    border: 1px solid;
+    border-bottom: none;
+    font-size: 90%;
 } 
-.im_box li { list-style: none; }
-.im_box a { 
-    color: #444444;
-    text-decoration: none;
-}
-.im_box a:hover { color: #666666; }
-.im_box a:active, 
-.im_box a:focus { 
-    outline-style: none; 
-    -moz-outline-style:none; 
+
+#chatbox #titlebar { text-indent: .25em; }
+#chatbox #titlebar:hover,
+#chatbox #userlist li:hover { cursor: pointer; }
+#chatbox #titlebar .updating { 
+    float: right; 
+    margin: .2em; 
+    height: .85em;
+    display: none;
 }
 
-.im_header, 
-.im_userlist li a,
-.im_buttons { padding: 0px 5px; }
-
-.im_userlist { 
+#chatbox ul { 
+    list-style: none; 
+    padding: 0;
     margin: 0;
-    padding: 0; 
-    z-index: 1; 
-    text-align: left;
+    text-indent: .25em;
+    overflow: hidden;
 }
+#chatbox #userlist { border-top: 1px solid; border-bottom: 1px solid; }
+#chatbox #userlist,
+#chatbox #userlist .header ul { display: none; }
+#chatbox #userlist .title { font-weight: bold; }
+#chatbox #userlist .title.expanded { display: none; }
+#chatbox #userlist .title:hover,
+#chatbox #userlist .user:hover { background-color: #DDEEFF; }
+#chatbox #userlist .user { padding-left: 1em; }
+#chatbox #userlist .user a { text-decoration: none; font-color: #333333; }
 
-.im_userlist li { 
-    float: none; 
-    margin: 0;
-    padding: 2px;
-    border-bottom: 1px dashed;
-}
+.accepted { background-color: rgba(174, 200, 86, 0.8); }
+.declined { background-color: rgba(237, 96, 96, 0.8); }
+.request,
+.info  { background-color: rgba(221, 238, 255, 0.8); }
 
-.im_userlist li:first-child { border-top: 1px dashed; }
-
-.im_buttons { overflow: auto; }
-.im_buttons #im_filter { float: left; }
-.im_userlist, 
-.im_buttons,
-.im_updating { display: none; }
-.im_updating { 
-    height: .9em;
-    margin-top: .15em;
-    float: right;
-}
-
-.im_accepted { background-color: rgba(174, 200, 86, 0.8); }
-.im_declined { background-color: rgba(237, 96, 96, 0.8); }
-.im_request { background-color: rgba(221, 238, 255, 0.8); }
-
-.ui-notification {
-    margin: 0;
-    -moz-box-shadow: none;
-    -webkit-box-shadow: none;
-}
-
-.ui-notification .ui-notification-content { padding-top: 2px; }
+.ui-notification { margin: 0; width: 300px; margin-top: 2px; }
+.ui-notification p { margin: 0; padding: 0; }
+.ui-notification-content,
 .ui-notification .ui-notification-titlebar { padding: 2px 8px; }
+.ui-notification .ui-notification-close { float: right; }
 .ui-notification .ui-notification-close:hover { cursor: pointer; }
-.ui-notification .ui-notification-title {
-    margin: 0;
-    font-size: 110%;
-    font-weight: bold;
-}
+.ui-notification .ui-notification-title { font-size: 110%; font-weight: bold; }

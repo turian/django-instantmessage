@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from carrot.serialization import SerializerNotInstalled, encode
-from datetime import datetime, timedelta
+from datetime import datetime
 from django.contrib.auth.models import User
 from django.test import TestCase
 from useractivity import local_settings as settings
 from useractivity.models import UserActivity
-from useractivity.messaging import get_online_users, update_online_users
 from useractivity.middleware import getip, UserActivityMiddleware
 
 class RequestMock(object):
@@ -17,71 +15,6 @@ class RequestMock(object):
 
         if user:
             self.user = user
-
-
-class TestMessaging(TestCase):
-    """Messaging module tests for UserActivity app."""
-
-    def setUp(self):
-        self.jack = User(username="jack")
-        self.jack.save()
-
-        self.nick = User(username="nick")
-        self.nick.save()
-
-    def test_update_online_users(self):
-        # Testcase, were everything is allright.
-        UserActivity(user=self.jack, ip="192.168.255.1").save()
-        UserActivity(user=self.nick, ip="192.168.255.2").save()
-
-        # Populating "onlineusers" queue with database values.
-        update_online_users()
-
-        # Checking that everything was exported correctly.
-        jack, nick = list(get_online_users())
-        self.failUnlessEqual(self.jack, jack.object)
-        self.failUnlessEqual(self.nick, nick.object)
-
-        # Testcase, were there's no users online.
-        delay = timedelta(seconds=settings.ACTIVITY_UPDATE_DELAY * 10)
-        UserActivity.objects.update(date=datetime.now() - delay)
-
-        # Populating "onlineusers" queue with database values.
-        update_online_users()
-
-        # Checking that the list of online users is empty.
-        self.failIf(list(get_online_users()))
-
-    def test_get_online_users(self):
-        UserActivity(user=self.jack, ip="192.168.255.1").save()
-        # Populating "onlineusers" queue with database values.
-        update_online_users()
-
-        online_users = list(get_online_users())
-        self.failUnless(online_users)
-        self.failUnlessEqual(1, len(online_users))
-
-        UserActivity(user=self.nick, ip="192.168.255.2").save()
-        # Populating "onlineusers" queue with database values.
-        update_online_users()
-
-        online_users = list(get_online_users())
-        self.failUnless(online_users)
-        self.failUnlessEqual(2, len(online_users))
-
-        # Emptying the queue. It should still return a list of
-        # online users, but the following call to get_online_users
-        # should return an empty list.
-        self.failUnless(get_online_users(empty=True))
-        self.failIf(get_online_users())
-
-    def test_django_serializer(self):
-        # Testing that django serializer is successfully installed
-        # and works.
-        try:
-            encode(UserActivity.objects.all(), "django")
-        except SerializerNotInstalled:
-            self.fail("django serializer should be installed")
 
 
 class TestMiddleware(TestCase):
@@ -130,7 +63,7 @@ class TestMiddleware(TestCase):
 
         # Changing UserActivity for jack, so that the middleware
         # should update it once executed.
-        delay = timedelta(seconds=settings.ACTIVITY_UPDATE_DELAY * 20)
+        delay = settings.ACTIVITY_UPDATE_DELAY * 20
         activity.date = datetime.now() - delay
         activity.save()
 
