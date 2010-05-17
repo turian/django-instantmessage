@@ -11,9 +11,11 @@ rendered on server with the following set of templates:
 * im/request.html - chat request (in one of three states: newly created, accepted 
   or declined)
 
-Chat logs are flushed to the database every IM_CHATLOG_DELAY minutes, using
-celery.PeriodicTask, which recieves all the messages from the chatlog queue,
-wraps them in im.models.Message and then saves. 
+The app also provides an optional logging feature, if IM_CHATLOG is set to True, each
+conversation will be logged to the databse each IM_CHATLOG_DELAY minutus, using celery's
+periodic_task, which recieves all the messages from the chatlog queue, wraps them in 
+im.models.Message and then saves. This is the default behaviour, so if you don't need the logs, 
+add IM_CHATLOG = False to your settings module.
 
 There are two types of messages in the system - "text" messages, and "event" 
 messages. The latter is just like the "text" message, except that instead of 
@@ -22,17 +24,41 @@ IM_EVENT_CHOICES. You can change the text behind event codes, through modifying
 IM_EVENT_CHOICES variable in settings.py. The default value only covers online,
 offline events.
 
-The app has very basic emoticons support, which is defined by two variables
-IM_EMOTICONS_URL, which sets a relative path (relative to STATIC_URL actually) 
-to the directory holding emoticon images; and IM_EMOTICONS_THEME, which is 
-a mapping of filenames in the emoticons dir to the text emoticons. The latter
-is best explained by example:
-IM_EMOTICONS_THEME = {
+The app has very basic emoticons support, through the "|emoticons" filter in 
+im_filters.py. Emoticons are defined by three variables IM_EMOTICONS_ROOT and 
+IM_EMOTICONS_URL, the first being responsible for an absolute path to the directory 
+holding emoticon themes, the second for a relative (relative to STATIC_URL actually) 
+one; and IM_EMOTICONS_THEME, which is a name of the directory holding emoticon 
+theme images. To be successfully used, this directory __must__ contain an __init__.py 
+file with a single variable, defining a mapping of filenames in the emoticons dir 
+to text emoticons. The latter is best explained by example:
+
+theme = {
     "base.gif": ":\)",
      ^           ^
      |           |
     filename    regexp
 }
+
+** In fact, you can have your theme's mappings and images separated, since
+** IM_EMOTICONS_ROOT is only used to extract the mappings. For example you
+** have the following setup:
+** 
+** IM_EMOTICONS_ROOT = '/path/to/themes/'
+** IM_EMOTICONS_THEME = 'ubertheme'
+**
+** So for this setup to work you need /path/to/themes/ to contain a file
+** ubertheme.py with a variable map, just like explained above. Emoticons
+** will be availible through the following url:
+** STATIC_URL/IM_EMOTICONS_URL/IM_EMOTICONS_THEME/*.*
+
+From scratch there are two themes availible:
+* miniemotes (http://www.bpsite.net/miniemotes/)
+* 16px emoticons (http://leslienayibe.deviantart.com/art/16-Pixel-Emoticons-152949483)
+
+Please note, that the first one (miniemotes) is released under Creative Commons License 
+and is only availible for free and non-commercial use.
+
 
 Installation:
 -------------
@@ -49,3 +75,10 @@ Note:
 -----
 Don't forget to start celerybeat along with django server:
 manage.py celeryd -B
+
+
+Not implemented:
+----------------
+* admin interface
+* avatar display (although that can be easily added through editing the templates)
+* history display

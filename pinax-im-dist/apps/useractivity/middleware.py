@@ -2,15 +2,10 @@
 
 import re
 from datetime import datetime, timedelta
-from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 from useractivity.models import UserActivity
+from useractivity import local_settings as settings
 
-try:
-    UPDATE_DELAY = timedelta(seconds=settings.ACTIVITY_UPDATE_DELAY)
-except AttributeError:
-    raise ImproperlyConfigured
-
+ACTIVITY_UPDATE_DELAY = timedelta(seconds=settings.ACTIVITY_UPDATE_DELAY)
 RE_IP = re.compile(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}")
 
 def getip(request):
@@ -50,7 +45,7 @@ class UserActivityMiddleware(object):
 
         # If the activity was just created or timestamp offset exceeds
         # maximum delay, updating timestamp and ip address.
-        if not activity.pk or now - activity.date >= UPDATE_DELAY:
+        if not activity.pk or now - activity.date >= ACTIVITY_UPDATE_DELAY:
             activity.date = now
             activity.ip = ip
             activity.save()

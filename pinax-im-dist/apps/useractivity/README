@@ -4,14 +4,14 @@ useractivity
 This small app allows you to get a list of online users. This is accomplished, 
 by introducing useractivity.middleware.UserActivityMiddleware, which periodically
 captures user's ip address, and dumps it to the database along with the current 
-timestamp. The period is defined by ACTIVITY_UPDATE_DELAY option, which equals
-to the number of seconds before the next snapshot is taken.
+timestamp. The period is defined by ACTIVITY_UPDATE_DELAY (default 60s) option, 
+which equals to the number of seconds before the next snapshot is taken.
 
 User activity data in the database is then processed by celery.PeriodicTask,
 which populates the rabbitmq exchange, allowing to get a query set of users 
 without hitting the database. Users query set is serialized to ACTIVITY_SERIALIZER
 format (default: "json"), limiting model fields to ACTIVITY_USER_FIELDS 
-(default: ["username""]).
+(default: ["username"]).
 
 Summary:
 -------
@@ -27,6 +27,7 @@ Summary:
 
 Requirements:
 -------------
+* rabbitmq server
 * celery
 * carrot
 
@@ -34,6 +35,7 @@ Installation:
 -------------
 Install celery.
 Add "useractivity" and "celery" to INSTALLED_APPS
+ * celery has lots of setup options, checkout http://celeryproject.org/
 Add "useractivity.middleware.UserActivityMiddleware" to MIDDLEWARE_CLASSES
 Add ACTIVITY_UPDATE_DELAY option to settings.py
 Sync the database.

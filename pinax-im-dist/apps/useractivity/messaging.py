@@ -2,30 +2,22 @@
 
 from __future__ import with_statement
 from datetime import datetime, timedelta
-from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.exceptions import ImproperlyConfigured
 from django.core.serializers import serialize, deserialize
 from django.utils.functional import curry
 from carrot.connection import DjangoBrokerConnection
 from carrot.messaging import Consumer, Publisher
 from carrot.serialization import registry
+from useractivity import local_settings as settings
 
-try:
-    delay = timedelta(seconds=settings.ACTIVITY_UPDATE_DELAY)
-except AttributeError:
-    raise ImproperlyConfigured
-
-# Fetching settings.
-fields = getattr(settings, "ACTIVITY_FIELDS", ["username"])
-_serializer_type = getattr(settings,
-                           "ACTIVITY_SERIALIZER",
-                           "json")
+delay = timedelta(seconds=settings.ACTIVITY_UPDATE_DELAY)
+fields = settings.ACTIVITY_USER_FIELDS
+serializer = settings.ACTIVITY_SERIALIZER
 
 # Registering Django serializer.
 registry.register("django",
-                  curry(serialize, _serializer_type, fields=fields),
-                  curry(deserialize, _serializer_type),
+                  curry(serialize, serializer, fields=fields),
+                  curry(deserialize, serializer),
                   content_type="application/django",
                   content_encoding="utf-8")
 
@@ -37,7 +29,7 @@ def update_online_users(**extraparams):
     Function exports all users, active within the last ACTIVITY_UPDATE_DELAY
     seconds, from the database to the "onlineusers" exchange. For efficiency
     reasons User models aren't serialized completely, only the fields, listed
-    in ACTIVITY_FIELDS extracted.
+    in ACTIVITY_USER_FIELDS extracted.
     """
     with DjangoBrokerConnection() as connection:
         # Discarding all messages in the queue, before updating it.

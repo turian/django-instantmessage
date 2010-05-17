@@ -2,9 +2,9 @@
 
 from carrot.serialization import SerializerNotInstalled, encode
 from datetime import datetime, timedelta
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase
+from useractivity import local_settings as settings
 from useractivity.models import UserActivity
 from useractivity.messaging import get_online_users, update_online_users
 from useractivity.middleware import getip, UserActivityMiddleware
