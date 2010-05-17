@@ -4,15 +4,20 @@ django-instantmessage
 IM-like application for Pinax social networks (Django), that allow you
 to see which friends are online and chat them
 
-    http://metaoptimize.com/projects/django-instantmessage
+    Website:
+        http://metaoptimize.com/projects/django-instantmessage
+    Code:
+        http://github.com/turian/django-instantmessage
 
-Please refer to the README files in
-    pinax-im-dist/apps/im/
-and
-    pinax-im-dist/apps/useractivity/
+Read INSTALL to learn how to install django-instantmessage in a Pinax site.
+If you want to learn more about the individual applications, please
+refer to the README files:
+    pinax-im-dist/apps/im/README
+    pinax-im-dist/apps/useractivity/README
 
-Note that this code distribution is designed for Pinax social networks
-(http://pinaxproject.com/). It might be possible to take the two
+Note that this code is designed for Pinax social networks
+(http://pinaxproject.com/). This code was built against Pinax 0.7.1,
+and tested on Pinax 0.7.1 and 0.7.2. It might be possible to take the two
 applications (pinax-im-dist/apps/im and pinax-im-dist/apps/useractivity),
 and separate them into separate distributions, for use with generic
 Django sites, not just Pinax ones. I am not experienced with Django
@@ -24,6 +29,15 @@ This code was written by Sergei Lebedev
 is copyright (c) 2010, Joseph Turian, and is released under the MIT
 License.
 
+ISSUES:
+    * There's one issue with the ui code currently: user groups get
+    collapsed after the userlist is updated. This is the result of having
+    all templates rendered on server (which is kind of important in my
+    opinion, because you don't have to modify js-code to get a different
+    reprentation of something). I don't think it's critical, since most
+    of the time the chatbox will be hidden from the users and hardly
+    anyone will notice, but the issue is there, and I'm not sure of a
+    good way to fix it.
 
 HISTORICAL NOTE:
     If you look at this git revision:

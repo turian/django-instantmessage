@@ -1,6 +1,9 @@
 * Install pinax as per its instructions, then entire your site (called
 "mysite" in Pinax's INSTALL document).
 
+* Copy the new files from this package into your Pinax site:
+    cp -R django-instantmessage/pinax-im-dist/* /tmp/Pinax-0.7.2-bundle/mysite/
+
 * Edit mysite/settings.py file in your Pinax site:
     # Add this to the end of MIDDLEWARE_CLASSES
     "useractivity.middleware.UserActivityMiddleware",
@@ -37,3 +40,6 @@
      (r'^feeds/posts/(.*)/$', 'django.contrib.syndication.views.feed', blogs_feed_dict),
      (r'^feeds/bookmarks/(.*)/?$', 'django.contrib.syndication.views.feed', bookmarks_feed_dict),
 
+* Finish setting up your Pinax site:
+    python manage.py syncdb
+    python manage.py runserver
