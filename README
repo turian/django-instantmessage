@@ -19,7 +19,15 @@ Django sites, not just Pinax ones. I am not experienced with Django
 packaging, and I encourage other users to experiment with using this
 code for non-Pinax Django site, and re-releasing it.
 
+To avoid hitting the database often, this code uses Celery
+(http://www.celeryproject.org/), a distributed queue that sits on the
+RabbitMQ AMQP messager broker (http://www.rabbitmq.com/). Remember
+to start celery server, and make sure the setup in local_settings.py
+(namely all the settings starting with BROKER_) is valid, i.e. the user
+is authorized to access the setup vhost etc.
+
 This code was written by Sergei Lebedev
 (http://www.rentacoder.com/RentACoder/DotNet/SoftwareCoders/ShowBioInfo.aspx?lngAuthorId=7183794),
 is copyright (c) 2010, Joseph Turian, and is released under the MIT
 License.
+
