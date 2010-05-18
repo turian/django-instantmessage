@@ -1,4 +1,4 @@
-django-instantmessage
+
 ---------------------
 
 IM-like application for Pinax social networks (Django), that allow you
@@ -31,6 +31,17 @@ is copyright (c) 2010, Joseph Turian, and is released under the MIT
 License.
 
 ISSUES:
+    * If, instead of replying to the chat request, you navigate to
+    another page, you lose the chat request. Then, that user cannot
+    re-chat request you. But if you navigate to another page, the chat
+    request window should stay.
+
+    * If you have multiple windows open and someone chats you, only one
+    window gets the chat request. Instead, they should all offer you
+    the chat request. (And, if you accept or decline the chat request
+    in one window, the chat request box should then disappear in all
+    the windows.)
+
     * The Chat list should stay at the bottom of the screen, even if
     you scroll down on the page. However, if you look at a page that
     is taller than the one screen height, and you scroll down, the chat
